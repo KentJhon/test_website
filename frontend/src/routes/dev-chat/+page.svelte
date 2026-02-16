@@ -2,6 +2,20 @@
 	import { onMount, tick } from 'svelte';
 	import { getMessages, sendMessage } from '$lib/api/messages';
 	import { showToast } from '$lib/stores/toast.svelte';
+	import {
+		getCallState,
+		getRemoteUser,
+		getIsMuted,
+		getIncomingSignal,
+		initCallSystem,
+		destroyCallSystem,
+		startCall,
+		acceptCall,
+		declineCall,
+		hangUp,
+		toggleMute,
+		setRemoteAudioElement,
+	} from '$lib/stores/call.svelte';
 	import type { PayloadMessage } from '$lib/types/payload';
 
 	let username = $state('');
@@ -13,6 +27,15 @@
 	let pollInterval = $state<ReturnType<typeof setInterval> | null>(null);
 	let messageContainer = $state<HTMLDivElement>(undefined!);
 
+	let showCallDialog = $state(false);
+	let callTargetInput = $state('');
+	let remoteAudioEl = $state<HTMLAudioElement>(undefined!);
+
+	let currentCallState = $derived(getCallState());
+	let currentRemoteUser = $derived(getRemoteUser());
+	let currentIsMuted = $derived(getIsMuted());
+	let currentIncomingSignal = $derived(getIncomingSignal());
+
 	onMount(() => {
 		const stored = localStorage.getItem('dev-chat-username');
 		if (stored) {
@@ -21,7 +44,14 @@
 		}
 		return () => {
 			if (pollInterval) clearInterval(pollInterval);
+			destroyCallSystem();
 		};
+	});
+
+	$effect(() => {
+		if (remoteAudioEl) {
+			setRemoteAudioElement(remoteAudioEl);
+		}
 	});
 
 	function joinChat(e: SubmitEvent) {
@@ -36,6 +66,7 @@
 	function changeUsername() {
 		if (pollInterval) clearInterval(pollInterval);
 		pollInterval = null;
+		destroyCallSystem();
 		localStorage.removeItem('dev-chat-username');
 		username = '';
 		usernameInput = '';
@@ -63,6 +94,20 @@
 				scrollToBottom();
 			}
 		}, 3000);
+		initCallSystem(username);
+	}
+
+	function openCallDialog() {
+		callTargetInput = '';
+		showCallDialog = true;
+	}
+
+	function handleStartCall(e: SubmitEvent) {
+		e.preventDefault();
+		const target = callTargetInput.trim();
+		if (!target) return;
+		showCallDialog = false;
+		startCall(target);
 	}
 
 	async function scrollToBottom() {
@@ -228,12 +273,44 @@
 						</p>
 					</div>
 				</div>
-				<button
-					onclick={changeUsername}
-					class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-				>
-					Change Name
-				</button>
+				<div class="flex items-center gap-2">
+					{#if currentCallState === 'idle'}
+						<button
+							onclick={openCallDialog}
+							class="cursor-pointer rounded-lg bg-green-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600"
+						>
+							Call
+						</button>
+						<button
+							onclick={changeUsername}
+							class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+						>
+							Change Name
+						</button>
+					{:else if currentCallState === 'calling'}
+						<span class="text-sm text-gray-500">Calling {currentRemoteUser}...</span>
+						<button
+							onclick={hangUp}
+							class="cursor-pointer rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600"
+						>
+							Cancel
+						</button>
+					{:else if currentCallState === 'active'}
+						<span class="text-sm font-medium text-green-600">In call with {currentRemoteUser}</span>
+						<button
+							onclick={toggleMute}
+							class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors {currentIsMuted ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+						>
+							{currentIsMuted ? 'Unmute' : 'Mute'}
+						</button>
+						<button
+							onclick={hangUp}
+							class="cursor-pointer rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600"
+						>
+							Hang Up
+						</button>
+					{/if}
+				</div>
 			</div>
 		</div>
 
@@ -349,6 +426,76 @@
 			</form>
 		</div>
 	</section>
+
+	<!-- Call Dialog Modal -->
+	{#if showCallDialog}
+		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+			<div class="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+				<h3 class="text-lg font-bold text-gray-900">Start a Voice Call</h3>
+				<p class="mt-1 text-sm text-gray-500">Enter the name of who you want to call</p>
+				<form onsubmit={handleStartCall} class="mt-4">
+					<input
+						type="text"
+						bind:value={callTargetInput}
+						required
+						maxlength={50}
+						class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 transition-all focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+						placeholder="Username to call"
+					/>
+					<div class="mt-4 flex gap-3">
+						<button
+							type="button"
+							onclick={() => (showCallDialog = false)}
+							class="flex-1 cursor-pointer rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							disabled={!callTargetInput.trim()}
+							class="flex-1 cursor-pointer rounded-xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							Call
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Incoming Call Modal -->
+	{#if currentCallState === 'incoming' && currentIncomingSignal}
+		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+			<div class="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
+				<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+					<svg class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+					</svg>
+				</div>
+				<h3 class="text-lg font-bold text-gray-900">Incoming Call</h3>
+				<p class="mt-1 text-sm text-gray-500">
+					<span class="font-semibold text-indigo-600">{currentRemoteUser}</span> is calling you
+				</p>
+				<div class="mt-6 flex gap-3">
+					<button
+						onclick={declineCall}
+						class="flex-1 cursor-pointer rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-600"
+					>
+						Decline
+					</button>
+					<button
+						onclick={acceptCall}
+						class="flex-1 cursor-pointer rounded-xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-600"
+					>
+						Accept
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Hidden audio element for remote audio playback -->
+	<audio bind:this={remoteAudioEl} autoplay></audio>
 {/if}
 
 /* asdasfasd */
