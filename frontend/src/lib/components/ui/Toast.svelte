@@ -16,10 +16,10 @@
 	};
 
 	const colorMap: Record<string, string> = {
-		success: 'bg-emerald-50 border-emerald-400 text-emerald-800',
-		error: 'bg-red-50 border-red-400 text-red-800',
-		warning: 'bg-amber-50 border-amber-400 text-amber-800',
-		info: 'bg-blue-50 border-blue-400 text-blue-800'
+		success: 'bg-emerald-50 dark:bg-emerald-900/40 border-emerald-400 text-emerald-800 dark:text-emerald-200',
+		error: 'bg-red-50 dark:bg-red-900/40 border-red-400 text-red-800 dark:text-red-200',
+		warning: 'bg-amber-50 dark:bg-amber-900/40 border-amber-400 text-amber-800 dark:text-amber-200',
+		info: 'bg-blue-50 dark:bg-blue-900/40 border-blue-400 text-blue-800 dark:text-blue-200'
 	};
 </script>
 

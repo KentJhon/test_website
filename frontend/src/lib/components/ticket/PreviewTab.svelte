@@ -10,6 +10,7 @@
 	import { calculateLayout } from '$lib/utils/print-layout';
 	import { SCALE_FACTOR } from '$lib/types/ticket';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
 
 	const elements = $derived(getElements());
 	const csvData = $derived(getCsvData());
@@ -23,6 +24,8 @@
 	let filterLabel = $state('all');
 	let previewImages = $state<string[]>([]);
 	let generating = $state(false);
+	let progress = $state(0);
+	let printing = $state(false);
 	let showPrintModal = $state(false);
 	let viewMode = $state<'pages' | 'grid'>('pages');
 
@@ -64,11 +67,13 @@
 		}
 
 		generating = true;
+		progress = 0;
 		previewImages = [];
 
 		try {
 			const images: string[] = [];
 			for (let i = 0; i < filteredData.length; i++) {
+				progress = ((i + 1) / filteredData.length) * 100;
 				const canvas = await renderTicketToCanvas(elements, filteredData[i], {
 					width: settings.width * SCALE_FACTOR,
 					height: settings.height * SCALE_FACTOR,
@@ -94,11 +99,18 @@
 		showPrintModal = true;
 	}
 
-	function doPrint() {
+	async function doPrint() {
 		showPrintModal = false;
+		printing = true;
+
+		// Yield to let the loading overlay render
+		await new Promise((r) => setTimeout(r, 50));
 
 		const printWindow = window.open('', '_blank');
-		if (!printWindow) return;
+		if (!printWindow) {
+			printing = false;
+			return;
+		}
 
 		const isLandscape = layout.orientation === 'landscape';
 		const pageW = isLandscape ? 297 : 210;
@@ -156,28 +168,34 @@
 		html += '</body></html>';
 		printWindow.document.write(html);
 		printWindow.document.close();
-		printWindow.onload = () => printWindow.print();
+		printWindow.onload = () => {
+			printing = false;
+			printWindow.print();
+		};
 	}
 </script>
 
+<LoadingOverlay visible={generating} message="Generating preview..." {progress} />
+<LoadingOverlay visible={printing} message="Preparing print layout..." />
+
 <div class="flex h-full flex-col">
 	<!-- Controls Bar -->
-	<div class="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-white px-4 py-3">
+	<div class="flex flex-wrap items-center gap-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
 		<div class="flex items-center gap-2">
-			<label for="preview-gap" class="text-xs font-medium text-gray-600">Gap (mm):</label>
-			<input id="preview-gap" type="number" value={gap} oninput={(e) => setTicketGap(Number((e.target as HTMLInputElement).value))} min="0" max="20" step="0.5" class="w-16 rounded border border-gray-300 px-2 py-1 text-xs" />
+			<label for="preview-gap" class="text-xs font-medium text-gray-600 dark:text-gray-300">Gap (mm):</label>
+			<input id="preview-gap" type="number" value={gap} oninput={(e) => setTicketGap(Number((e.target as HTMLInputElement).value))} min="0" max="20" step="0.5" class="w-16 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 text-xs" />
 		</div>
 
 		<!-- View mode toggle -->
 		{#if previewImages.length > 0}
-			<div class="flex rounded border border-gray-300">
+			<div class="flex rounded border border-gray-300 dark:border-gray-600">
 				<button
 					onclick={() => (viewMode = 'pages')}
-					class="cursor-pointer px-3 py-1 text-xs font-medium {viewMode === 'pages' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-50'}"
+					class="cursor-pointer px-3 py-1 text-xs font-medium {viewMode === 'pages' ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}"
 				>Pages</button>
 				<button
 					onclick={() => (viewMode = 'grid')}
-					class="cursor-pointer px-3 py-1 text-xs font-medium {viewMode === 'grid' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-50'}"
+					class="cursor-pointer px-3 py-1 text-xs font-medium {viewMode === 'grid' ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}"
 				>Grid</button>
 			</div>
 		{/if}
@@ -186,12 +204,12 @@
 			<div class="flex flex-wrap gap-1">
 				<button
 					onclick={() => (filterLabel = 'all')}
-					class="cursor-pointer rounded-full px-3 py-1 text-xs font-medium {filterLabel === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+					class="cursor-pointer rounded-full px-3 py-1 text-xs font-medium {filterLabel === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}"
 				>All</button>
 				{#each uniqueLabels as label}
 					<button
 						onclick={() => (filterLabel = label)}
-						class="cursor-pointer rounded-full px-3 py-1 text-xs font-medium {filterLabel === label ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+						class="cursor-pointer rounded-full px-3 py-1 text-xs font-medium {filterLabel === label ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}"
 					>{label}</button>
 				{/each}
 			</div>
@@ -218,7 +236,7 @@
 
 	<!-- Stats -->
 	{#if previewImages.length > 0}
-		<div class="flex gap-4 bg-gray-50 px-4 py-2 text-xs text-gray-500">
+		<div class="flex gap-4 bg-gray-50 dark:bg-gray-800/50 px-4 py-2 text-xs text-gray-500 dark:text-gray-400">
 			<span>Tickets: {filteredData.length}</span>
 			<span>Pages: {layout.totalPages}</span>
 			<span>Per page: {layout.ticketsPerPage}</span>
@@ -227,7 +245,7 @@
 	{/if}
 
 	<!-- Preview Area -->
-	<div class="flex-1 overflow-auto bg-gray-300 p-6">
+	<div class="flex-1 overflow-auto bg-gray-300 dark:bg-gray-700 p-6">
 		{#if previewImages.length > 0}
 			{#if viewMode === 'pages'}
 				<!-- A4 Page Layout View -->
@@ -235,7 +253,7 @@
 					{#each pages as page, pageIdx}
 						<div class="relative">
 							<!-- Page number -->
-							<p class="mb-2 text-center text-xs font-medium text-gray-500">Page {pageIdx + 1} of {pages.length}</p>
+							<p class="mb-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400">Page {pageIdx + 1} of {pages.length}</p>
 
 							<!-- A4 page -->
 							<div
@@ -296,15 +314,15 @@
 					{#each previewImages as src, i}
 						<div class="overflow-hidden rounded-lg bg-white shadow-sm">
 							<img {src} alt="Ticket {i + 1}" class="w-full" />
-							<p class="p-2 text-center text-xs text-gray-400">#{i + 1}</p>
+							<p class="p-2 text-center text-xs text-gray-400 dark:text-gray-500">#{i + 1}</p>
 						</div>
 					{/each}
 				</div>
 			{/if}
 		{:else}
 			<div class="flex h-full items-center justify-center">
-				<div class="text-center text-gray-400">
-					<svg class="mx-auto h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+				<div class="text-center text-gray-400 dark:text-gray-500">
+					<svg class="mx-auto h-16 w-16 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
 						<path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
 					</svg>
@@ -319,29 +337,29 @@
 <!-- Print Reminder Modal -->
 <Modal open={showPrintModal} title="Print Settings Reminder" onclose={() => (showPrintModal = false)}>
 	<div class="space-y-4">
-		<div class="rounded-lg border border-amber-200 bg-amber-50 p-4">
-			<h4 class="mb-2 text-sm font-semibold text-amber-800">Important: Set margins to None</h4>
-			<p class="text-sm text-amber-700">
+		<div class="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 p-4">
+			<h4 class="mb-2 text-sm font-semibold text-amber-800 dark:text-amber-300">Important: Set margins to None</h4>
+			<p class="text-sm text-amber-700 dark:text-amber-400">
 				For tickets to print at the correct size, you must set your printer margins to <strong>None</strong>
 				in the print dialog. The layout already includes 10mm margins.
 			</p>
 		</div>
-		<div class="rounded-lg bg-gray-50 p-3">
-			<p class="text-xs font-medium text-gray-700">How to set margins:</p>
-			<ol class="mt-2 space-y-1 text-xs text-gray-600">
+		<div class="rounded-lg bg-gray-50 dark:bg-gray-700 p-3">
+			<p class="text-xs font-medium text-gray-700 dark:text-gray-200">How to set margins:</p>
+			<ol class="mt-2 space-y-1 text-xs text-gray-600 dark:text-gray-300">
 				<li>1. In the print dialog, click <strong>More Settings</strong></li>
 				<li>2. Find the <strong>Margins</strong> dropdown</li>
 				<li>3. Select <strong>None</strong></li>
 				<li>4. Make sure <strong>Scale</strong> is set to <strong>100%</strong></li>
 			</ol>
 		</div>
-		<div class="flex gap-4 text-xs text-gray-500">
+		<div class="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
 			<span>Pages: {layout.totalPages}</span>
 			<span>Orientation: {layout.orientation}</span>
 			<span>Tickets: {previewImages.length}</span>
 		</div>
 		<div class="flex justify-end gap-2">
-			<button onclick={() => (showPrintModal = false)} class="cursor-pointer rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100">Cancel</button>
+			<button onclick={() => (showPrintModal = false)} class="cursor-pointer rounded-lg px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
 			<button onclick={doPrint} class="cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">Continue to Print</button>
 		</div>
 	</div>

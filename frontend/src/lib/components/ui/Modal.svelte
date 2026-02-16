@@ -26,13 +26,13 @@
 		onclick={handleBackdropClick}
 		onkeydown={handleKeydown}
 	>
-		<div class="mx-4 w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+		<div class="mx-4 w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-2xl">
 			{#if title}
 				<div class="mb-4 flex items-center justify-between">
-					<h3 class="text-lg font-semibold text-gray-900">{title}</h3>
+					<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
 					<button
 						onclick={onclose}
-						class="cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
+						class="cursor-pointer text-gray-400 dark:text-gray-500 transition-colors hover:text-gray-600 dark:hover:text-gray-300"
 						aria-label="Close"
 					>
 						✕
