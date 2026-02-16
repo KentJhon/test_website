@@ -100,8 +100,8 @@
 	}
 </script>
 
-<details class="group rounded-lg border border-gray-200">
-	<summary class="flex cursor-pointer items-center justify-between p-3 text-sm font-semibold text-gray-700">
+<details class="group rounded-lg border border-gray-200 dark:border-gray-700">
+	<summary class="flex cursor-pointer items-center justify-between p-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
 		<span class="flex items-center gap-2">
 			<span>Project</span>
 			{#if isDirty}
@@ -114,29 +114,29 @@
 			<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
 		</svg>
 	</summary>
-	<div class="space-y-2 border-t border-gray-100 p-3">
+	<div class="space-y-2 border-t border-gray-100 dark:border-gray-700 p-3">
 		<!-- Dirty-state indicator -->
 		{#if isDirty}
-			<div class="flex items-center gap-1.5 rounded bg-amber-50 px-2 py-1">
+			<div class="flex items-center gap-1.5 rounded bg-amber-50 dark:bg-amber-900/30 px-2 py-1">
 				<span class="inline-block h-1.5 w-1.5 rounded-full bg-amber-400"></span>
-				<span class="text-xs text-amber-700">Unsaved changes</span>
+				<span class="text-xs text-amber-700 dark:text-amber-300">Unsaved changes</span>
 			</div>
 		{:else if lastSavedTime}
-			<div class="flex items-center gap-1.5 rounded bg-emerald-50 px-2 py-1">
+			<div class="flex items-center gap-1.5 rounded bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1">
 				<span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-				<span class="text-xs text-emerald-700">
+				<span class="text-xs text-emerald-700 dark:text-emerald-300">
 					Saved {formatRelativeTime(lastSavedTime)}{lastSavedTemplateName ? ` (${lastSavedTemplateName})` : ''}
 				</span>
 			</div>
 		{/if}
 
 		<div class="flex gap-1">
-			<button onclick={exportProject} class="flex-1 cursor-pointer rounded bg-indigo-50 px-2 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100">Export</button>
-			<label class="flex flex-1 cursor-pointer items-center justify-center rounded bg-indigo-50 px-2 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
+			<button onclick={exportProject} class="flex-1 cursor-pointer rounded bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1.5 text-xs font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50">Export</button>
+			<label class="flex flex-1 cursor-pointer items-center justify-center rounded bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1.5 text-xs font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50">
 				Import
 				<input type="file" accept=".veenttix" onchange={importProject} class="hidden" />
 			</label>
-			<button onclick={clearProject} class="cursor-pointer rounded bg-red-50 px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100">Clear</button>
+			<button onclick={clearProject} class="cursor-pointer rounded bg-red-50 dark:bg-red-900/30 px-2 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50">Clear</button>
 		</div>
 	</div>
 </details>

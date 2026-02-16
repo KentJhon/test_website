@@ -21,17 +21,17 @@
 </script>
 
 {#if headers.length > 0}
-	<details class="group rounded-lg border border-gray-200">
-		<summary class="flex cursor-pointer items-center justify-between p-3 text-sm font-semibold text-gray-700">
+	<details class="group rounded-lg border border-gray-200 dark:border-gray-700">
+		<summary class="flex cursor-pointer items-center justify-between p-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
 			<span>🏷️ Label Colors</span>
 			<svg class="h-4 w-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 				<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
 			</svg>
 		</summary>
-		<div class="space-y-3 border-t border-gray-100 p-3">
+		<div class="space-y-3 border-t border-gray-100 dark:border-gray-700 p-3">
 			<div>
-				<label for="label-column" class="mb-1 block text-xs font-medium text-gray-500">Label Column</label>
-				<select id="label-column" value={config.labelColumn} onchange={handleColumnChange} class="w-full rounded border border-gray-300 px-2 py-1.5 text-xs">
+				<label for="label-column" class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Label Column</label>
+				<select id="label-column" value={config.labelColumn} onchange={handleColumnChange} class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1.5 text-xs">
 					<option value="">None</option>
 					{#each headers as header}
 						<option value={header}>{header}</option>
@@ -41,12 +41,12 @@
 
 			{#if uniqueValues.length > 0}
 				<div>
-					<label for="label-block-width" class="mb-1 block text-xs font-medium text-gray-500">Block Width (px)</label>
-					<input id="label-block-width" type="number" value={config.labelBlockWidth} onchange={handleWidthChange} min="5" max="80" class="w-full rounded border border-gray-300 px-2 py-1 text-xs" />
+					<label for="label-block-width" class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Block Width (px)</label>
+					<input id="label-block-width" type="number" value={config.labelBlockWidth} onchange={handleWidthChange} min="5" max="80" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 text-xs" />
 				</div>
 
 				<div>
-					<label class="flex items-center gap-2 text-xs text-gray-600">
+					<label class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
 						<input type="checkbox" checked={config.rightBlockEnabled} onchange={() => setRightBlockEnabled(!config.rightBlockEnabled)} class="rounded" />
 						Right-side block
 					</label>
@@ -54,8 +54,8 @@
 
 				{#if config.rightBlockEnabled}
 					<div>
-						<label for="right-block-width" class="mb-1 block text-xs font-medium text-gray-500">Right Block Width</label>
-						<input id="right-block-width" type="number" value={config.rightBlockWidth} onchange={(e) => setRightBlockWidth(parseInt((e.target as HTMLInputElement).value) || 20)} min="5" max="80" class="w-full rounded border border-gray-300 px-2 py-1 text-xs" />
+						<label for="right-block-width" class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Right Block Width</label>
+						<input id="right-block-width" type="number" value={config.rightBlockWidth} onchange={(e) => setRightBlockWidth(parseInt((e.target as HTMLInputElement).value) || 20)} min="5" max="80" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 text-xs" />
 					</div>
 				{/if}
 
@@ -69,7 +69,7 @@
 								class="h-6 w-6 cursor-pointer rounded border-0"
 								aria-label="Color for {value}"
 							/>
-							<span class="truncate text-xs text-gray-600">{value}</span>
+							<span class="truncate text-xs text-gray-600 dark:text-gray-300">{value}</span>
 						</div>
 					{/each}
 				</div>

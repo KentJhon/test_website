@@ -81,7 +81,7 @@
 
 	<!-- Sidebar -->
 	<div
-		class="h-full w-72 flex-shrink-0 overflow-y-auto border-r border-gray-200 bg-white transition-transform duration-300 max-md:fixed max-md:left-0 max-md:top-16 max-md:z-20 max-md:bottom-0 max-md:shadow-xl {sidebarOpen
+		class="h-full w-72 flex-shrink-0 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-transform duration-300 max-md:fixed max-md:left-0 max-md:top-16 max-md:z-20 max-md:bottom-0 max-md:shadow-xl {sidebarOpen
 			? 'max-md:translate-x-0'
 			: 'max-md:-translate-x-full'}"
 	>

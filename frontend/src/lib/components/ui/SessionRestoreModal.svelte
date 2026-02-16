@@ -23,18 +23,18 @@
 
 <Modal {open} title="Resume Previous Session?" onclose={ondiscard}>
 	<div class="space-y-4">
-		<p class="text-sm text-gray-600">
+		<p class="text-sm text-gray-600 dark:text-gray-300">
 			A previous session was found from <strong>{formatTime(savedAt)}</strong>. Would you like to restore it?
 		</p>
-		<div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
-			<p class="text-xs text-blue-700">
+		<div class="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 p-3">
+			<p class="text-xs text-blue-700 dark:text-blue-300">
 				Restoring will load your previous elements, CSV data, background image, and settings.
 			</p>
 		</div>
 		<div class="flex justify-end gap-2">
 			<button
 				onclick={ondiscard}
-				class="cursor-pointer rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100"
+				class="cursor-pointer rounded-lg px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
 			>
 				Discard
 			</button>
