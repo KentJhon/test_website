@@ -186,15 +186,15 @@
 	const isAnyBusy = $derived(isSaving || isDeleting || isLoadingTemplate);
 </script>
 
-<details class="group rounded-lg border border-gray-200">
-	<summary class="flex cursor-pointer items-center justify-between p-3 text-sm font-semibold text-gray-700">
+<details class="group rounded-lg border border-gray-200 dark:border-gray-700">
+	<summary class="flex cursor-pointer items-center justify-between p-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
 		<span>📋 Templates</span>
 		<svg class="h-4 w-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 			<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
 		</svg>
 	</summary>
-	<div class="space-y-2 border-t border-gray-100 p-3">
-		<select bind:value={selectedTemplateId} disabled={isAnyBusy} class="w-full rounded border border-gray-300 px-2 py-1.5 text-xs disabled:opacity-50">
+	<div class="space-y-2 border-t border-gray-100 dark:border-gray-700 p-3">
+		<select bind:value={selectedTemplateId} disabled={isAnyBusy} class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1.5 text-xs disabled:opacity-50">
 			<option value="">Select template...</option>
 			<optgroup label="Built-in">
 				{#each builtInTemplates as tmpl}
@@ -213,27 +213,27 @@
 			<button
 				onclick={loadSelected}
 				disabled={!selectedTemplateId || isAnyBusy}
-				class="flex-1 cursor-pointer rounded bg-indigo-50 px-2 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-40 disabled:cursor-not-allowed"
+				class="flex-1 cursor-pointer rounded bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1.5 text-xs font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 disabled:opacity-40 disabled:cursor-not-allowed"
 			>
 				{isLoadingTemplate ? 'Loading...' : 'Load'}
 			</button>
 			<button
 				onclick={saveAsCurrent}
 				disabled={isAnyBusy}
-				class="flex-1 cursor-pointer rounded bg-emerald-50 px-2 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed"
+				class="flex-1 cursor-pointer rounded bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-40 disabled:cursor-not-allowed"
 			>
 				{isSaving ? 'Saving...' : 'Save Current'}
 			</button>
 			<button
 				onclick={deleteCurrent}
 				disabled={!selectedTemplateId || isBuiltInId(selectedTemplateId) || isAnyBusy}
-				class="cursor-pointer rounded bg-red-50 px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed"
+				class="cursor-pointer rounded bg-red-50 dark:bg-red-900/30 px-2 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 disabled:opacity-40 disabled:cursor-not-allowed"
 			>
 				{isDeleting ? '...' : 'Delete'}
 			</button>
 		</div>
 		{#if getIsLoading()}
-			<p class="text-center text-xs text-gray-400">Loading templates...</p>
+			<p class="text-center text-xs text-gray-400 dark:text-gray-500">Loading templates...</p>
 		{/if}
 	</div>
 </details>

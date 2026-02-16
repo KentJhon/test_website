@@ -35,6 +35,18 @@ export interface PayloadMessage {
 	createdAt: string;
 }
 
+export interface PayloadCallSignal {
+	id: number;
+	callId: string;
+	from: string;
+	to: string;
+	type: 'offer' | 'answer' | 'ice-candidate' | 'hangup';
+	data: Record<string, unknown> | null;
+	status: 'pending' | 'active' | 'ended';
+	updatedAt: string;
+	createdAt: string;
+}
+
 export interface PayloadTicketTemplate {
 	id: number;
 	name: string;

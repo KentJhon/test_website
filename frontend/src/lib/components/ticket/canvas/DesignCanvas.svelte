@@ -73,7 +73,7 @@
 </script>
 
 <div
-	class="flex h-full flex-col items-center overflow-auto bg-gray-200 p-8"
+	class="flex h-full flex-col items-center overflow-auto bg-gray-200 dark:bg-gray-800 p-8"
 	role="region"
 	aria-label="Design canvas"
 	onwheel={handleWheel}
