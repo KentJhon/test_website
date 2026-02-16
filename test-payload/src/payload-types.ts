@@ -74,6 +74,7 @@ export interface Config {
     messages: Message;
     'ticket-templates': TicketTemplate;
     'call-signals': CallSignal;
+    'calendar-events': CalendarEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -88,6 +89,7 @@ export interface Config {
     messages: MessagesSelect<false> | MessagesSelect<true>;
     'ticket-templates': TicketTemplatesSelect<false> | TicketTemplatesSelect<true>;
     'call-signals': CallSignalsSelect<false> | CallSignalsSelect<true>;
+    'calendar-events': CalendarEventsSelect<false> | CalendarEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -289,6 +291,19 @@ export interface CallSignal {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "calendar-events".
+ */
+export interface CalendarEvent {
+  id: number;
+  title: string;
+  description?: string | null;
+  start_date: string;
+  end_date: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -338,6 +353,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'call-signals';
         value: number | CallSignal;
+      } | null)
+    | ({
+        relationTo: 'calendar-events';
+        value: number | CalendarEvent;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -498,6 +517,18 @@ export interface CallSignalsSelect<T extends boolean = true> {
   type?: T;
   data?: T;
   status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "calendar-events_select".
+ */
+export interface CalendarEventsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  start_date?: T;
+  end_date?: T;
   updatedAt?: T;
   createdAt?: T;
 }
