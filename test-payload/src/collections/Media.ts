@@ -5,6 +5,11 @@ export const Media: CollectionConfig = {
   access: {
     create: () => true,
     read: () => true,
+    update: () => true,
+    delete: () => true,
+  },
+  admin: {
+    useAsTitle: 'filename',
   },
   fields: [
     {
