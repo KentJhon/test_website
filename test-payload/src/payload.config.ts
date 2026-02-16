@@ -12,6 +12,7 @@ import { Events } from './collections/Event'
 import { Messages } from './collections/Message'
 import { TicketTemplates } from './collections/TicketTemplate'
 import { CallSignals } from './collections/CallSignal'
+import { CalendarEvents } from './collections/CalendarEvent'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -24,7 +25,7 @@ export default buildConfig({
     },
   },
   cors: ['http://localhost:5173', 'http://localhost:4173'],
-  collections: [Users, Media, Posts, Events, Messages, TicketTemplates, CallSignals],
+  collections: [Users, Media, Posts, Events, Messages, TicketTemplates, CallSignals, CalendarEvents],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

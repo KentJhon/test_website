@@ -61,6 +61,16 @@ export interface PayloadTicketTemplate {
 	createdAt: string;
 }
 
+export interface PayloadCalendarEvent {
+	id: number;
+	title: string;
+	description?: string | null;
+	start_date: string;
+	end_date: string;
+	updatedAt: string;
+	createdAt: string;
+}
+
 export interface PaginatedResponse<T> {
 	docs: T[];
 	totalDocs: number;
