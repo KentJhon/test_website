@@ -5,7 +5,7 @@
 
 	let { data } = $props();
 
-	let searchInput = $state(data.search || '');
+	let searchInput = $state((() => data.search || '')());
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
 	const activeSort = $derived(data.sort || 'nearest');
@@ -535,7 +535,7 @@
 				<div class="grid grid-cols-3 gap-3">
 					<!-- Company Logo Upload -->
 					<div>
-						<label class="block text-sm font-medium text-gray-300 mb-1.5">Company Logo</label>
+						<span class="block text-sm font-medium text-gray-300 mb-1.5">Company Logo</span>
 						<div class="upload-zone">
 							{#if companyLogoPreview}
 								<div class="relative h-full">
@@ -564,7 +564,7 @@
 
 					<!-- Event Poster Upload -->
 					<div>
-						<label class="block text-sm font-medium text-gray-300 mb-1.5">Event Poster</label>
+						<span class="block text-sm font-medium text-gray-300 mb-1.5">Event Poster</span>
 						<div class="upload-zone">
 							{#if posterPreview}
 								<div class="relative h-full">
@@ -593,7 +593,7 @@
 
 					<!-- Background Image Upload -->
 					<div>
-						<label class="block text-sm font-medium text-gray-300 mb-1.5">Background</label>
+						<span class="block text-sm font-medium text-gray-300 mb-1.5">Background</span>
 						<div class="upload-zone">
 							{#if backgroundPreview}
 								<div class="relative h-full">
@@ -764,6 +764,7 @@
 	.line-clamp-2 {
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
+		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}

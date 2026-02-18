@@ -5,7 +5,7 @@
 	const PAYLOAD_URL = import.meta.env.PUBLIC_PAYLOAD_URL || 'http://localhost:3000';
 
 	let { data } = $props();
-	const event = data.event;
+	const event = $derived(data.event);
 
 	// Toast notification state
 	let toast = $state<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -26,7 +26,7 @@
 
 	// Reactive tickets list from event data
 	let tickets = $state<Array<{ id?: string; ticket_name: string; ticket_price: number; ticket_color: string }>>(
-		event.tickets || []
+		(() => data.event.tickets || [])()
 	);
 
 	function openTicketModal() {
