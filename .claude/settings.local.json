@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(BLOB_READ_WRITE_TOKEN=dummy pnpm run generate:importmap:*)",
+      "Bash(pnpm run generate:importmap:*)"
+    ]
+  }
+}
