@@ -26,8 +26,33 @@ let signalingPollTimer: ReturnType<typeof setInterval> | null = null;
 let lastSignalTimestamp = '';
 let pendingIceCandidates: RTCIceCandidate[] = [];
 
+const TURN_USERNAME = import.meta.env.VITE_TURN_USERNAME || '';
+const TURN_CREDENTIAL = import.meta.env.VITE_TURN_CREDENTIAL || '';
+
 const RTC_CONFIG: RTCConfiguration = {
-	iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+	iceServers: [
+		{ urls: 'stun:stun.relay.metered.ca:80' },
+		{
+			urls: 'turn:global.relay.metered.ca:80',
+			username: TURN_USERNAME,
+			credential: TURN_CREDENTIAL,
+		},
+		{
+			urls: 'turn:global.relay.metered.ca:80?transport=tcp',
+			username: TURN_USERNAME,
+			credential: TURN_CREDENTIAL,
+		},
+		{
+			urls: 'turn:global.relay.metered.ca:443',
+			username: TURN_USERNAME,
+			credential: TURN_CREDENTIAL,
+		},
+		{
+			urls: 'turns:global.relay.metered.ca:443?transport=tcp',
+			username: TURN_USERNAME,
+			credential: TURN_CREDENTIAL,
+		},
+	],
 };
 
 export function getCallState() {
