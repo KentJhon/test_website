@@ -140,7 +140,8 @@ export async function startCall(targetUser: string) {
 		});
 		offerSignalId = offerSignal.id;
 
-		lastSignalTimestamp = new Date().toISOString();
+		// Use the server's timestamp so we don't miss signals due to clock skew
+		lastSignalTimestamp = offerSignal.createdAt;
 		startSignalingPoll();
 		startOutgoingRingtone();
 	} catch {
@@ -155,6 +156,9 @@ export async function acceptCall() {
 	callState = 'active';
 
 	try {
+		// Use the offer's creation time so we pick up all ICE candidates sent after the offer
+		lastSignalTimestamp = incomingSignal.createdAt;
+
 		localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		peerConnection = new RTCPeerConnection(RTC_CONFIG);
 
@@ -189,7 +193,8 @@ export async function acceptCall() {
 
 		await updateCallSignalStatus(incomingSignal.id, 'active');
 
-		lastSignalTimestamp = new Date().toISOString();
+		// Immediately poll once to pick up ICE candidates that arrived while we were setting up
+		await pollForSignals();
 		startSignalingPoll();
 	} catch {
 		cleanup();

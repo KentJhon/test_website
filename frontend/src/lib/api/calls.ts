@@ -9,10 +9,11 @@ export async function createCallSignal(data: {
 	data?: Record<string, unknown> | null;
 	status?: PayloadCallSignal['status'];
 }): Promise<PayloadCallSignal> {
-	return payloadFetch<PayloadCallSignal>('/api/call-signals', {
+	const res = await payloadFetch<{ doc: PayloadCallSignal; message: string }>('/api/call-signals', {
 		method: 'POST',
 		body: JSON.stringify(data),
 	});
+	return res.doc;
 }
 
 export async function getCallSignals(
@@ -48,10 +49,11 @@ export async function updateCallSignalStatus(
 	id: number,
 	status: PayloadCallSignal['status']
 ): Promise<PayloadCallSignal> {
-	return payloadFetch<PayloadCallSignal>(`/api/call-signals/${id}`, {
+	const res = await payloadFetch<{ doc: PayloadCallSignal; message: string }>(`/api/call-signals/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify({ status }),
 	});
+	return res.doc;
 }
 
 export async function getNewCallSignals(
