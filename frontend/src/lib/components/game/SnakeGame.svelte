@@ -11,6 +11,7 @@
 		getPlayerCount,
 		getGameConnectionStatus,
 		getPing,
+		getLastDirection,
 	} from '$lib/stores/snake-ws.svelte';
 
 	interface Props {
@@ -44,6 +45,19 @@
 
 	const GRID = 20;
 	let frameTime = 0;
+
+	// Client-side prediction state
+	let predictedDirection: 'up' | 'down' | 'left' | 'right' | null = null;
+	let lastServerTick = -1;
+	let lastServerStateTime = 0;
+
+	const OPPOSITES: Record<string, string> = {
+		up: 'down', down: 'up', left: 'right', right: 'left'
+	};
+
+	function isOpposite(a: string, b: string): boolean {
+		return OPPOSITES[a] === b;
+	}
 
 	// FPS tracking
 	let fps = $state(0);
@@ -82,6 +96,11 @@
 				localMapSize = data.mapSize;
 			},
 			onState(state) {
+				// Track when new server ticks arrive for prediction timing
+				if (state.tick !== lastServerTick) {
+					lastServerTick = state.tick;
+					lastServerStateTime = performance.now();
+				}
 				latestState = state;
 				const me = state.snakes.find((s) => s.id === localPlayerId);
 				if (me) myScore = me.score;
@@ -89,6 +108,7 @@
 			onDied(data) {
 				if (data.playerId === localPlayerId) {
 					isDead = true;
+					predictedDirection = null;
 					// Clear smooth positions so respawn snaps to new location
 					smoothPositions.delete(localPlayerId);
 				}
@@ -96,6 +116,7 @@
 			onRespawned(data) {
 				if (data.playerId === localPlayerId) {
 					isDead = false;
+					predictedDirection = null;
 					// Clear smooth positions so we snap to new spawn location
 					smoothPositions.delete(localPlayerId);
 				}
@@ -208,6 +229,15 @@
 		};
 	});
 
+	function applyDirection(dir: 'up' | 'down' | 'left' | 'right') {
+		// Get current server direction for the local snake to prevent 180° reversal
+		const me = latestState?.snakes.find((s) => s.id === localPlayerId);
+		const currentDir = predictedDirection || me?.direction;
+		if (currentDir && isOpposite(dir, currentDir)) return;
+		predictedDirection = dir;
+		sendDirection(dir);
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		const keyMap: Record<string, 'up' | 'down' | 'left' | 'right'> = {
 			ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
@@ -217,12 +247,12 @@
 		const dir = keyMap[e.key];
 		if (dir) {
 			e.preventDefault();
-			sendDirection(dir);
+			applyDirection(dir);
 		}
 	}
 
 	function handleDirection(dir: 'up' | 'down' | 'left' | 'right') {
-		sendDirection(dir);
+		applyDirection(dir);
 	}
 
 	function lerp(a: number, b: number, t: number): number {
@@ -239,6 +269,7 @@
 		const smoothFactor = 1 - Math.exp(-20 * dt);
 
 		const snakes: SnakeData[] = latestState.snakes.map((snake) => {
+			const isLocal = snake.id === localPlayerId;
 			let smooth = smoothPositions.get(snake.id);
 
 			// First time or dead snake: snap to server position
@@ -248,19 +279,47 @@
 				return snake;
 			}
 
-			// Match segment count (growth or shrink)
-			while (smooth.length < snake.segments.length) {
-				const src = snake.segments[smooth.length];
-				smooth.push({ x: src.x, y: src.y });
-			}
-			if (smooth.length > snake.segments.length) {
-				smooth.length = snake.segments.length;
+			// Compute prediction target for local player
+			let targetSegments = snake.segments;
+			if (isLocal && predictedDirection && lastServerStateTime > 0 && snake.segments.length > 0) {
+				const elapsed = now - lastServerStateTime;
+				// If more than 50ms since last server state, predict one step ahead
+				if (elapsed > 50) {
+					const dir = predictedDirection;
+					const head = snake.segments[0];
+					let dx = 0, dy = 0;
+					if (dir === 'up') dy = -GRID;
+					else if (dir === 'down') dy = GRID;
+					else if (dir === 'left') dx = -GRID;
+					else if (dir === 'right') dx = GRID;
+
+					const predictedHead = { x: head.x + dx, y: head.y + dy };
+
+					// Don't predict outside the map
+					if (predictedHead.x >= 0 && predictedHead.x <= localMapSize &&
+						predictedHead.y >= 0 && predictedHead.y <= localMapSize) {
+						// Predicted segments: new head + all server segments except last (simulates movement)
+						targetSegments = [predictedHead, ...snake.segments.slice(0, -1)];
+					}
+				}
 			}
 
-			// Smoothly chase each segment toward its server target
+			// Match segment count (growth or shrink)
+			while (smooth.length < targetSegments.length) {
+				const src = targetSegments[smooth.length];
+				smooth.push({ x: src.x, y: src.y });
+			}
+			if (smooth.length > targetSegments.length) {
+				smooth.length = targetSegments.length;
+			}
+
+			// Smoothly chase each segment toward its target
+			// Use a faster smoothing factor for the local player's head to feel responsive
+			const localHeadFactor = isLocal ? 1 - Math.exp(-30 * dt) : smoothFactor;
 			const segments = smooth.map((s, i) => {
-				s.x += (snake.segments[i].x - s.x) * smoothFactor;
-				s.y += (snake.segments[i].y - s.y) * smoothFactor;
+				const factor = (isLocal && i === 0) ? localHeadFactor : smoothFactor;
+				s.x += (targetSegments[i].x - s.x) * factor;
+				s.y += (targetSegments[i].y - s.y) * factor;
 				return { x: s.x, y: s.y };
 			});
 

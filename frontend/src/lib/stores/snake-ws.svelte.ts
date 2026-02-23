@@ -26,6 +26,7 @@ let reconnectAttempt = 0;
 let currentName = '';
 let currentColor = '';
 let currentCosmetics: SnakeCosmetics | null = null;
+let lastDirection = $state<'up' | 'down' | 'left' | 'right' | null>(null);
 const MAX_BACKOFF = 15_000;
 const PING_INTERVAL = 2000;
 
@@ -85,10 +86,16 @@ export function disconnectGame() {
 	playerId = '';
 	playerCount = 0;
 	ping = 0;
+	lastDirection = null;
+}
+
+export function getLastDirection(): 'up' | 'down' | 'left' | 'right' | null {
+	return lastDirection;
 }
 
 export function sendDirection(direction: 'up' | 'down' | 'left' | 'right') {
 	if (!socket || socket.readyState !== WebSocket.OPEN) return;
+	lastDirection = direction;
 	socket.send(JSON.stringify({ type: 'snake_direction', direction }));
 }
 
